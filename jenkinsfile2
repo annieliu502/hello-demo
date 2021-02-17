@@ -8,6 +8,7 @@ pipeline {
                 checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '8e57b42f-03c2-4fc5-9f00-34bcff799563', url: 'https://github.com/annieliu502/hello-demo.git']]])
 
                 // Run Maven on a Unix agent.
+                sh "if (ps -ef| grep java|grep 8001)then (ps -ef| grep java|grep 8001| awk '{print \$2}'|xargs kill -9) fi"
 
                 withMaven(maven: 'maven') {
                     sh "mvn -Dmaven.test.failure.ignore=true clean package"
@@ -15,7 +16,8 @@ pipeline {
                 // To run Maven on a Windows agent, use
                 // bat "mvn -Dmaven.test.failure.ignore=true clean package"
 
-                deploy adapters: [tomcat8(credentialsId: 'd50c0fa0-8c77-4ad3-8757-8019c4ae9ad9', path: '', url: 'http://192.168.56.102:8080/')], contextPath: 'helloDemo', war: 'target/helloDemo.war'
+                sh "export BUILD_ID='dontKillMe'"
+                sh "JENKINS_NODE_COOKIE=dontKillMe nohup java -jar /Users/andrewwen/.jenkins/workspace/pipleline-auto-build-test/target/helloDemo.war --server.port=8001 &"
             }
 
             post {
