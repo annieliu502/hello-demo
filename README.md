@@ -1,2 +1,2 @@
 # hello-demo
-it's a simple demo
+hello,it's a simple demo.
