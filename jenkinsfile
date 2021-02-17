@@ -26,6 +26,7 @@ pipeline {
                     emailext(
                         body: '${FILE,path="email.html"}',
                         subject: '构建通知：${PROJECT_NAME}-Build # ${BUILD-NUMBER}-${BUILD_STATUS}',
+                        mimeType: 'text/html',
                         to: '1194678538@qq.com'
                     )
                 }
