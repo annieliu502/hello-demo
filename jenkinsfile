@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                // Get some code from a GitHub repository
+                checkout([$class: 'GitSCM', branches: [[name: '*/dev']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '8e57b42f-03c2-4fc5-9f00-34bcff799563', url: 'https://github.com/annieliu502/hello-demo.git']]])
+
+                // Run Maven on a Unix agent.
+                sh "if (ps -ef| grep java|grep 8001)then (ps -ef| grep java|grep 8001| awk '{print \$2}'|xargs kill -9) fi"
+
+                withMaven(maven: 'maven') {
+                    sh "mvn -Dmaven.test.failure.ignore=true clean package"
+                }
+                // To run Maven on a Windows agent, use
+                // bat "mvn -Dmaven.test.failure.ignore=true clean package"
+
+                sh "export BUILD_ID='dontKillMe'"
+                sh "JENKINS_NODE_COOKIE=dontKillMe nohup java -jar /Users/andrewwen/.jenkins/workspace/pipleline-auto-build-test/target/helloDemo.war --server.port=8001 &"
+            }
+
+            post {
+                always {
+                    // One or more steps need to be included within each condition's block.
+                    emailext body: '${FILE.path="email.html"}', subject: '构建通知：${PROJECT_NAME}-Build # ${BUILD-NUMBER}-${BUILD_STATUS}', to: '1194678538@qq.com'
+                }
+            }
+
+        }
+    }
+}
